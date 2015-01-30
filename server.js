@@ -2,13 +2,12 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+var keys = require('./config.js');
+var db = require('./app.js');
 //EXAMPLE OF PASSPORT IN ACTION: 
 //https://github.com/jaredhanson/passport-github/blob/master/examples/login/app.js
 var passport = require('passport');
 var GitHubStrategy = require('passport-github').Strategy;
-
-var GITHUB_CLIENT_ID = "";
-var GITHUB_CLIENT_SECRET = "";
 
 // Initialize Passport!  Also use passport.session() middleware, to support
 // persistent login sessions (recommended).
@@ -38,8 +37,8 @@ passport.deserializeUser(function(obj, done) {
 //   credentials (in this case, an accessToken, refreshToken, and GitHub
 //   profile), and invoke a callback with a user object.
 passport.use(new GitHubStrategy({
-    clientID: GITHUB_CLIENT_ID,
-    clientSecret: GITHUB_CLIENT_SECRET,
+    clientID: keys.GITHUB_CLIENT_ID,
+    clientSecret: keys.GITHUB_CLIENT_SECRET,
     callbackURL: "http://localhost:8000/github/callback"
   },
   function(accessToken, refreshToken, profile, done) {
@@ -66,12 +65,12 @@ app.get('/github',
 //   Use passport.authenticate() as route middleware to authenticate the
 //   request.  If authentication fails, the user will be redirected back to the
 //   login page.  Otherwise, the primary route function function will be called,
-//   which, in this example, will redirect the user to the home page.
+//   which, in this example, will redirect the user to the students page.
 app.get('/github/callback', 
   passport.authenticate('github', { failureRedirect: '/' }),
   function(req, res) {
-    console.log(req.user)
-    res.redirect('/');
+    createUser(req.user.displayName, req.user.id, db.Student);
+    res.redirect('/student');
   });
 
 app.get('/logout', function(req, res){
@@ -120,4 +119,18 @@ io.on('connection', function (socket) {
   });
 });
 
-
+////////////////HELPER FUNCTIONS////////////////////////
+var createUser = function(username, password, model){
+  model
+  .create({
+    username: username,
+    password: password
+  })
+  .complete(function(err, user) {
+    if(err){
+      console.log('error: ' + err)
+    } else{
+      console.log('user is saved! ' + user)
+    }
+  })
+}
