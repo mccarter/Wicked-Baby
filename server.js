@@ -59,7 +59,7 @@ passport.use(new GitHubStrategy({
   clientID: keys.GITHUB_CLIENT_ID,
   clientSecret: keys.GITHUB_CLIENT_SECRET,
   //callbackURL: process.env.host + ":" + port + "/github/callback"
-  callbackURL: 'http://dissonance.ninja/github/callback'
+  callbackURL: 'http://dissonance.azurewebsites.net/github/callback'
   //callbackURL: 'http://localhost:8000/github/callback'
 },
 function(accessToken, refreshToken, profile, done) {
